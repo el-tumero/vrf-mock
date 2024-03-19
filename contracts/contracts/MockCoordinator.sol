@@ -2,15 +2,8 @@
 pragma solidity ^0.8.24;
 
 import {ConsumerInterface} from "./ConsumerInterface.sol";
-import "@openzeppelin/contracts/utils/structs/DoubleEndedQueue.sol";
-
-import "hardhat/console.sol";
 
 contract MockCoordinator {
-    using DoubleEndedQueue for DoubleEndedQueue.Bytes32Deque;
-
-    DoubleEndedQueue.Bytes32Deque private pendingRequests;
-
 
     enum RequestState {
         NONE,
@@ -24,7 +17,12 @@ contract MockCoordinator {
         RequestState state;
     }
 
+    event CallbackDone(uint256 requestId);
+    event CallbackError(uint256 requestId);
+
     address public immutable operator;
+
+    uint256 public constant CALLBACK_GAS_LIMIT = 300_000;
 
     uint256 private _nextRequestId;
     mapping(uint256=>Request) private requests;
@@ -45,7 +43,13 @@ contract MockCoordinator {
         // convert r & s to uint256
         uint rand = uint256(r) << 128 | uint256(s) >> 128;
         
-        ConsumerInterface(req.requestor).rawFulfillRandomWord(requestId, rand);
+        try ConsumerInterface(req.requestor).rawFulfillRandomWord{gas: CALLBACK_GAS_LIMIT - 100_000}(requestId, rand) {
+            emit CallbackDone(requestId);
+        } 
+        catch {
+            emit CallbackError(requestId);
+        }
+
         req.state = RequestState.EXECUTED;
     }
 
@@ -61,10 +65,12 @@ contract MockCoordinator {
     }
     
 
-    function requestRandomWord() external returns (uint256 requestId) {
+    function requestRandomWord() external payable returns (uint256 requestId) {
+        require(msg.value > tx.gasprice * CALLBACK_GAS_LIMIT, "Insufficient fee!");
         bytes32 input = blockhash(block.number - 1);
         requests[_nextRequestId] = Request(msg.sender, input, RequestState.EXISTS);
         emit RequestReceived(_nextRequestId, input);
+        payable(operator).transfer(msg.value); // should be in the execute()
         return _nextRequestId++;
     }
 }

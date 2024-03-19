@@ -3,7 +3,7 @@ import {
   } from "@nomicfoundation/hardhat-toolbox/network-helpers";
   import { expect } from "chai";
   import { ethers } from "hardhat";
-  import { AbiCoder, EventLog, Signature, hexlify, keccak256 } from "ethers"
+  import { AbiCoder, EventLog, Signature, hexlify, keccak256, parseEther, parseUnits } from "ethers"
   import { randomBytes } from "crypto";
   
   describe("Request tests", function () {
@@ -20,14 +20,16 @@ import {
       return { coordinator, consumer, acc0, acc1};
     }
 
-
-
+    const GAS_PRICE = parseUnits("5", "gwei")
+    const TIP = parseEther("0.01")
 
     describe("Tests", () => {
-        it("Request to coordinator", async() => {
-            const {consumer, coordinator, acc1} = await loadFixture(deployFixture)
-            await consumer.requestRandomWord()
+        it.only("Request to coordinator", async() => {
+            const {consumer, coordinator, acc1, acc0} = await loadFixture(deployFixture)
             
+            const fee = GAS_PRICE * 300_000n + TIP
+            await consumer.requestRandomWord({value: fee})
+
             const [requestId, request] = await coordinator.findRequestToExecute()
             
             // convert hex string to Uint8Array
@@ -37,9 +39,11 @@ import {
             // get v, r, s
             const {v, r, s} = Signature.from(n)
 
-            await coordinator.connect(acc1).execute(requestId, v, r, s)
+            const execTx = await coordinator.connect(acc1).execute(requestId, v, r, s)
+            console.log(await execTx.wait())
             expect(await consumer.displayRandomWords()).to.have.length(1)
-
+            
+            console.log(await acc0.provider.getBalance(acc1.address))
             // console.log(await consumer.displayRandomWords())
         })
 

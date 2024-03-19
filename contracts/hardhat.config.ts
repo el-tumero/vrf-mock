@@ -12,6 +12,7 @@ const config: HardhatUserConfig = {
         enabled: false,
         blockNumber: 5402075
       },
+      gasPrice: 5_000_000_000, // 5 gwei
       accounts: [
         {privateKey: process.env.PRIV_KEY as string, balance: "1000000000000000000"},
         {privateKey: process.env.PRIV_KEY2 as string, balance: "1000000000000000000"}

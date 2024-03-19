@@ -20,8 +20,9 @@ contract MockConsumer is ConsumerBase {
     uint256[] private randomWords;
     
 
-    function requestRandomWord() external {
-        uint256 requestId = MockCoordinator(vrfCoordinator).requestRandomWord();
+    function requestRandomWord() external payable {
+        require(msg.value > 300_000 * tx.gasprice, "Insufficient fee!");
+        uint256 requestId = MockCoordinator(vrfCoordinator).requestRandomWord{value: msg.value}();
         requestsState[requestId] = RequestState.SENT;
     }
 
