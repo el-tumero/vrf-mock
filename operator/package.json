@@ -1,0 +1,7 @@
+{
+  "name": "operator",
+  "version": "0.0.1",
+  "description": "Operator software for VRF-mock",
+  "main": "index.js",
+  "license": "MIT"
+}
