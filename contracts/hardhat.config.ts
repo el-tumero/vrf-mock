@@ -13,8 +13,8 @@ const config: HardhatUserConfig = {
         blockNumber: 5402075
       },
       accounts: [
-        {privateKey: process.env.PRIV_KEY as string, balance: "479000000000000000"},
-        {privateKey: process.env.PRIV_KEY2 as string, balance: "479000000000000000"}
+        {privateKey: process.env.PRIV_KEY as string, balance: "1000000000000000000"},
+        {privateKey: process.env.PRIV_KEY2 as string, balance: "1000000000000000000"}
       ]
       }
   }

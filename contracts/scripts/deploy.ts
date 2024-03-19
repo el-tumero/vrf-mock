@@ -8,13 +8,13 @@ async function main() {
     const Consumer = await ethers.getContractFactory("MockConsumer")
 
     const coordinator = await Coordinator.deploy(acc1)
+    await coordinator.waitForDeployment()
     const consumer = await Consumer.deploy(await coordinator.getAddress())
+    await consumer.waitForDeployment()
+
 
     console.log("coordinator address:", await coordinator.getAddress())
     console.log("consumer address:", await consumer.getAddress())
-
-    await coordinator.waitForDeployment()
-    await consumer.waitForDeployment()
 
     console.log("Deployed!")
 }

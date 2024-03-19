@@ -55,6 +55,10 @@ contract MockCoordinator {
         }
         return (0, Request(address(0), bytes32(0), RequestState.NONE));
     }
+
+    function checkStatus(uint256 requestId) external view returns (RequestState) {
+        return requests[requestId].state;
+    }
     
 
     function requestRandomWord() external returns (uint256 requestId) {
